@@ -1,0 +1,18 @@
+- mkdir() llamado a sistema que crea un directorio
+
+- opendir() funcion que retorna un puntero a flujo del directorio que su nombre se pasa como parametro, éste apunta a la primera entrada del directorio
+
+- readdir() funcion que retorna un puntero a estructura del tipo dirent, que representa la siguiente entrada en el flujo de directorio, retorna null si llega al final del flujo de directorio o si ocurre un error.
+
+- closedir() función que cierra el flujo del directorio.
+
+- rmdir() llamado a sistema que elimina un directorio vacío
+
+- lstat() llamado a sistema que retorna las estadísticas el archivo
+
+- link() llamado a sistema que crea un link entre dos archivos que se le pasan por argumento
+
+- symlink () crea un enlace simbólico llamado newpath que contiene la cadena de caracteres oldpath.
+Los enlaces simbólicos se interpretan en tiempo de ejecución, como si los contenidos del enlace hubiesen sido sustituidos en el camino que se sigue para encontrar un archivo o directorio.
+
+- unlink() remueve el archivo especificado
