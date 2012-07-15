@@ -1,0 +1,8 @@
+- getuid() get user identity, retorna el ID del usuario real del proceso de llamada.
+
+- geteuid() obtiene el usuario efectivo del proceso de llamada.
+
+- getpwuid() obtiene una entrada del fichero de password.
+
+	El usuario Real es (el UID) quien ejecuta el proceso, el usuario efectivo es
+	(el ID) bajo el que se ejecuta el proceso.
