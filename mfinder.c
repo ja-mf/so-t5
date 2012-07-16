@@ -14,7 +14,7 @@ int main ()
 	int uid;
 
 	priv = 0700;
-	uid = 0;
+	uid = 1000;
 
 	//se abre directorio actual
 	directorio = opendir(".");
@@ -36,7 +36,8 @@ int main ()
 			}
 
 			else 
-			{	
+			{
+				printf("nepe");
 				//printf("name: %s\t st_uid : %d\n",entry->d_name,info.st_uid);
 				//muestra archivo en el cual uid y los permisos sean los correspondientes
 				if (uid == info.st_uid)
@@ -49,6 +50,9 @@ int main ()
 					if(info.st_mode & S_IROTH) printf("\totro tiene permiso r\n");
 					if(info.st_mode & S_IWOTH) printf("\totro tiene permiso w\n");
 					if(info.st_mode & S_IXOTH) printf("\totro tiene permiso x\n");
+					int masked;
+					masked = (info.st_mode & 000777);
+					printf("\tcalza pollo: masked: %o, verify: %o\n", masked, (masked == priv)? 1 : 0 );
 //					if( access(entry->d_name,R_OK) == 0 ) printf("\tpermisos de lectura\n");
 //					if( access(entry->d_name,W_OK) == 0 ) printf("\tpermisos de escritura\n");
 //					if( access(entry->d_name,X_OK) == 0 ) printf("\tpermisos de ejecucion\n");
