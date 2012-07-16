@@ -6,12 +6,12 @@
 #include<unistd.h>
 #include<sys/types.h>
 
+int mfinder(int uid,int priv,DIR * directorio);
+
 int main (int argc, char **argv)
 {
 	//argc -> 2 , argv -> dueño y privilegios
 	DIR * directorio;
-	struct dirent * entry;
-	struct stat info;
 	int priv;	
 	int uid;
 
@@ -25,24 +25,36 @@ int main (int argc, char **argv)
 	
 	//printf("arg1 = %d, arg2 = %i, arg3 = %o\n",argc,uid,priv);
 
+	directorio = opendir(".");
+	mfinder(uid,priv,directorio);
+	return 0;
+}
+
+
+
+int mfinder(int uid, int priv,DIR * directorio)
+{
+	//DIR * directorio;
+	struct dirent * entry;
+	struct stat info;
 
 	//se abre directorio actual
-	directorio = opendir(".");
-
+	//directorio = opendir(".");
+	
 	if(directorio == NULL)
 	{
 		printf("No se puede acceder a directorio");
-		exit(1);
+		return (0);
 	}
-	
 	//se itera en directorio
 	while ( (entry = readdir(directorio)) != NULL)
-	{
+	{		printf("dir : %s\n",entry->d_name);
+	
 		if ( (strcmp(entry->d_name,".") ) != 0 && (strcmp(entry->d_name,"..") ) != 0 )
 
-			//se verfica estado del archivo
+			//se verfica estado del archivo distinto a "." y a ".."
 			if ( stat(entry->d_name , &info) == -1 )
-			{
+			{	
 				perror("stat");
 				exit(EXIT_FAILURE);
 			}
@@ -64,6 +76,13 @@ int main (int argc, char **argv)
 					if(info.st_mode & S_IROTH) printf("\totro, permiso r\n");
 					if(info.st_mode & S_IWOTH) printf("\totro, permiso w\n");
 					if(info.st_mode & S_IXOTH) printf("\totro, permiso x\n");
+					if(S_ISDIR(info.st_mode))
+					{
+						printf( "\tes un directorio\n");
+						directorio = opendir(entry->d_name);
+						mfinder(uid,priv,directorio);
+
+					}
 
 				}
 			}
