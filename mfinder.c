@@ -5,8 +5,9 @@
 #include<sys/stat.h>
 #include<unistd.h>
 #include<sys/types.h>
+#include<string.h>
 
-int mfinder(int uid,int priv,DIR * directorio);
+int mfinder(int uid,int priv,char * dir);
 
 int main (int argc, char **argv)
 {
@@ -22,24 +23,30 @@ int main (int argc, char **argv)
 	//Privilegios asociados por umask en caso de no ingresarlos.
 	if (argv[2] == NULL) priv = umask(022); 
 	else priv = strtol(argv[2],NULL,8);
-	
 	//printf("arg1 = %d, arg2 = %i, arg3 = %o\n",argc,uid,priv);
 
-	directorio = opendir(".");
-	mfinder(uid,priv,directorio);
+	//se establece ruta completa para stat
+	char path[255];
+	getcwd(path, 255);
+	strcat(path, "/");
+
+	//directorio = opendir(".");
+	char * dir = path;
+	mfinder(uid,priv,dir);
 	return 0;
 }
 
 
 
-int mfinder(int uid, int priv,DIR * directorio)
+int mfinder(int uid, int priv,char * dir)
 {
-	//DIR * directorio;
+	DIR * directorio;
 	struct dirent * entry;
 	struct stat info;
+	char tmp[100];
 
 	//se abre directorio actual
-	//directorio = opendir(".");
+	directorio = opendir(dir);
 	
 	if(directorio == NULL)
 	{
@@ -48,12 +55,17 @@ int mfinder(int uid, int priv,DIR * directorio)
 	}
 	//se itera en directorio
 	while ( (entry = readdir(directorio)) != NULL)
-	{		printf("dir : %s\n",entry->d_name);
-	
-		if ( (strcmp(entry->d_name,".") ) != 0 && (strcmp(entry->d_name,"..") ) != 0 )
+	{	
+		if ( (strcmp(entry->d_name,".") ) != 0 && (strcmp(entry->d_name,"..") ) != 0 ) 
+		{	
+			//stat debe recibir ruta completa, en tmp queda la ruta base
+			//con strcat queda la ruta mas el nombre del archivo
+			strcpy(tmp,dir);
+			strcat(tmp,entry->d_name);
+			printf("%s\n", tmp);
 
 			//se verfica estado del archivo distinto a "." y a ".."
-			if ( stat(entry->d_name , &info) == -1 )
+			if ( stat(tmp , &info) == -1 )
 			{	
 				perror("stat");
 				exit(EXIT_FAILURE);
@@ -61,7 +73,6 @@ int mfinder(int uid, int priv,DIR * directorio)
 
 			else 
 			{
-				//printf("name: %s\t st_uid : %d\n",entry->d_name,info.st_uid);
 				//muestra archivo en el cual uid y los permisos sean los correspondientes
 				if (uid == info.st_uid && priv == (info.st_mode & 000777))
 				{
@@ -79,17 +90,22 @@ int mfinder(int uid, int priv,DIR * directorio)
 					if(S_ISDIR(info.st_mode))
 					{
 						printf( "\tes un directorio\n");
-						directorio = opendir(entry->d_name);
-						mfinder(uid,priv,directorio);
-
+						//strcat(dir,entry->d_name);
+						mfinder(uid,priv,strcat(tmp,"/"));
+					}
+				}
+				
+				else if(S_ISDIR(info.st_mode))
+					{
+						printf( "\tes un directorio\n");
+						mfinder(uid,priv,strcat(tmp,"/"));
 					}
 
-				}
 			}
-	
+		}
 	}
 
 	closedir (directorio);
 
-	return 1;
+	return 0;
 }
