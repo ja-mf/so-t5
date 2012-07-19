@@ -23,7 +23,7 @@ int main (int argc, char **argv)
 	//Privilegios asociados por umask en caso de no ingresarlos.
 	if (argv[2] == NULL) priv = umask(022); 
 	else priv = strtol(argv[2],NULL,8);
-	//printf("arg1 = %d, arg2 = %i, arg3 = %o\n",argc,uid,priv);
+	
 
 	//se establece ruta completa para stat
 	char path[255];
@@ -62,7 +62,7 @@ int mfinder(int uid, int priv,char * dir)
 			//con strcat queda la ruta mas el nombre del archivo
 			strcpy(tmp,dir);
 			strcat(tmp,entry->d_name);
-			printf("%s\n", tmp);
+			
 
 			//se verfica estado del archivo distinto a "." y a ".."
 			if ( stat(tmp , &info) == -1 )
@@ -76,8 +76,15 @@ int mfinder(int uid, int priv,char * dir)
 				//muestra archivo en el cual uid y los permisos sean los correspondientes
 				if (uid == info.st_uid && priv == (info.st_mode & 000777))
 				{
-					printf("st_mode:\t%o\n",info.st_mode);
-					printf("archivo:\t%s\n",entry->d_name);
+					//printf("st_mode:\t%o\n",info.st_mode);
+					
+					(S_ISDIR(info.st_mode))?	printf("archivo:\t%s (directorio)\n",entry->d_name) :
+												printf("archivo:\t%s\n",entry->d_name);
+
+					printf("Ruta completa: %s\n\n", tmp);
+
+					/*
+					//muestra los permisos asignados.
 					if(info.st_mode & S_IRUSR) printf("\tpropietario, permiso r\n");
 					if(info.st_mode & S_IWUSR) printf("\tpropietario, permiso w\n");
 					if(info.st_mode & S_IXUSR) printf("\tpropietario, permiso x\n");
@@ -87,17 +94,22 @@ int mfinder(int uid, int priv,char * dir)
 					if(info.st_mode & S_IROTH) printf("\totro, permiso r\n");
 					if(info.st_mode & S_IWOTH) printf("\totro, permiso w\n");
 					if(info.st_mode & S_IXOTH) printf("\totro, permiso x\n");
+					*/
+
 					if(S_ISDIR(info.st_mode))
 					{
-						printf( "\tes un directorio\n");
-						//strcat(dir,entry->d_name);
+						//printf( "Ingresando a directorio\n");
 						mfinder(uid,priv,strcat(tmp,"/"));
 					}
 				}
 				
-				else if(S_ISDIR(info.st_mode))
+				//Entra de igual forma en directorio aun cuando no tiene los permisos.
+				//En caso de que el directorio no tenga acceso de lectura para el uid, 
+				//continua con el siguiente.
+				else 
+					if( S_ISDIR(info.st_mode) && uid == info.st_uid && (info.st_mode & S_IRUSR) )
 					{
-						printf( "\tes un directorio\n");
+						printf( "Se busca archivo en directorio con permisos distintos.\n");
 						mfinder(uid,priv,strcat(tmp,"/"));
 					}
 
@@ -107,5 +119,5 @@ int mfinder(int uid, int priv,char * dir)
 
 	closedir (directorio);
 
-	return 0;
+	return 1;
 }
